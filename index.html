@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- https://spicyyoghurt.com/tutorials/html5-javascript-game-development/develop-a-html5-javascript-game -->
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width" /><title>PoC</title></head>
+<body><canvas id="canvas" width="320" height="240"></canvas><script>
+"use strict";
+
+window.onload = init;
+
+let canvas;
+let context;
+
+// timers
+let updateFrameTimeMS = 10;
+let cumulativeUpdateTimeMS = 0;
+let prevFrameTimeMS; // for FPS only
+
+function init()
+{
+    canvas = document.getElementById("canvas");
+    context = canvas.getContext("2d");
+    
+    // initialise timers
+    cumulativeUpdateTimeMS = window.performance.now()
+    prevFrameTimeMS = cumulativeUpdateTimeMS
+    
+    window.requestAnimationFrame(gameLoop); // request frame 1
+}
+
+function gameLoop(timestamp)
+{
+    clearScreen();
+    while(cumulativeUpdateTimeMS + updateFrameTimeMS < timestamp)
+    {
+        update(updateFrameTimeMS / 1000);
+        cumulativeUpdateTimeMS += updateFrameTimeMS
+    }
+    debugText("Time(ms): " + cumulativeUpdateTimeMS)
+    drawFPS(timestamp);
+
+    render();
+    renderDebugText();
+
+    window.requestAnimationFrame(gameLoop); // request next frame
+}
+
+let rectX = 0;
+let deltaX = 60;
+let rectY = 0;
+let deltaY = 40;
+function update(stepSecs)
+{
+    rectX += (deltaX*stepSecs);
+    if(rectX <= 0 || rectX + 30 >= 320-1) { deltaX = -1*deltaX; }
+    rectY += (deltaY*stepSecs);
+    if(rectY <= 0 || rectY + 30 >= 240-1) { deltaY = -1*deltaY; }
+}
+
+function clearScreen()
+{
+    // clear
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // white background with black border
+    context.fillStyle = '#ffffff'; context.fillRect(0,0,320,240);
+    context.strokeStyle = '#000000'; context.strokeRect(0,0,320,240);
+    
+    // reset text output
+    debugTextRows = []
+}
+
+function render()
+{
+    // draw a red box
+    context.fillStyle = '#ff8080';
+    context.fillRect(rectX, rectY, 30, 30);
+}
+
+// FPS code
+function drawFPS(timestamp)
+{
+    let fps = Math.round(1 / ((timestamp - prevFrameTimeMS) / 1000));
+    debugText("FPS: " + fps);
+    prevFrameTimeMS = timestamp;
+}
+
+let debugTextRows;
+function debugText(text)
+{
+    debugTextRows.push(text)
+}
+
+function renderDebugText()
+{
+    context.font = '12px Arial';
+    context.fillStyle = 'black';
+    debugTextRows.forEach(function(item, index, array) {
+        context.fillText(item, 5, 12*(index+1))
+    })
+}
+
+</script></body></html>
