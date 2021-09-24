@@ -14,11 +14,54 @@ let updateFrameTimeMS = 10;
 let cumulativeUpdateTimeMS = 0;
 let prevFrameTimeMS; // for FPS only
 
+let stars = [];
+let starNum = 1000;
+let starSpeed = 25;
+let starSpawnDist = 250;
+let starDistribution = 50000;
+class Star
+{
+    constructor(context, x, y, z)
+    {
+        this.context = context;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    update(stepSecs)
+    {
+        this.z -= (starSpeed*stepSecs);
+        if(this.z <= 0) { this.z += starSpawnDist; }
+    }
+
+    render()
+    {
+        // perspective
+        let sx = this.x / this.z;
+        let sy = this.y / this.z;
+        
+        // screen centre
+        sx += (320/2);
+        sy += (240/2);
+
+        context.beginPath();
+        context.arc(sx, sy, 1, 0, 2*Math.PI, false);
+        context.fillStyle = '#ffffff';
+        context.fill();
+    }
+}
+
 function init()
 {
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
-    
+
+    for(let i = 0; i < starNum; i++)
+    {
+        stars.push(new Star(context, (Math.random()-0.5)*starDistribution, (Math.random()-0.5)*starDistribution, Math.random()*starSpawnDist));
+    }
+
     // initialise timers
     cumulativeUpdateTimeMS = window.performance.now()
     prevFrameTimeMS = cumulativeUpdateTimeMS
@@ -43,16 +86,12 @@ function gameLoop(timestamp)
     window.requestAnimationFrame(gameLoop); // request next frame
 }
 
-let rectX = 0;
-let deltaX = 60;
-let rectY = 0;
-let deltaY = 40;
 function update(stepSecs)
 {
-    rectX += (deltaX*stepSecs);
-    if(rectX <= 0 || rectX + 30 >= 320-1) { deltaX = -1*deltaX; }
-    rectY += (deltaY*stepSecs);
-    if(rectY <= 0 || rectY + 30 >= 240-1) { deltaY = -1*deltaY; }
+    for(let i = 0; i < stars.length; i++)
+    {
+        stars[i].update(stepSecs);
+    }
 }
 
 function clearScreen()
@@ -60,8 +99,8 @@ function clearScreen()
     // clear
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // white background with black border
-    context.fillStyle = '#ffffff'; context.fillRect(0,0,320,240);
+    // black background with black border
+    context.fillStyle = '#000000'; context.fillRect(0,0,320,240);
     context.strokeStyle = '#000000'; context.strokeRect(0,0,320,240);
     
     // reset text output
@@ -70,9 +109,10 @@ function clearScreen()
 
 function render()
 {
-    // draw a red box
-    context.fillStyle = '#ff8080';
-    context.fillRect(rectX, rectY, 30, 30);
+    for(let i = 0; i < stars.length; i++)
+    {
+        stars[i].render();
+    }
 }
 
 // FPS code
@@ -92,7 +132,7 @@ function debugText(text)
 function renderDebugText()
 {
     context.font = '12px Arial';
-    context.fillStyle = 'black';
+    context.fillStyle = 'white';
     debugTextRows.forEach(function(item, index, array) {
         context.fillText(item, 5, 12*(index+1))
     })
