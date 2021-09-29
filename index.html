@@ -46,7 +46,9 @@ class Star
         sy += (240/2);
 
         context.beginPath();
-        context.arc(sx, sy, 1, 0, 2*Math.PI, false);
+        let radius = 1;
+        if(this.z < 150) { radius = 2; }
+        context.arc(sx, sy, radius, 0, 2*Math.PI, false);
         context.fillStyle = '#ffffff';
         context.fill();
     }
